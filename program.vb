@@ -4,13 +4,13 @@ Imports System
 
 Module DeterministicCyclotomicPolynomialPrimalityTest
 
-    Function TestExponentiality(CandidatePower As Integer) As Boolean
+    Function TestExponentiality(CandidatePower As Long) As Boolean
         If CandidatePower < 2 Then Return False
 
-        Dim GreatestExponent As Integer = CInt(Math.Floor(Math.Log(CandidatePower) / Math.Log(2)))
+        Dim GreatestExponent As Long = CInt(Math.Floor(Math.Log(CandidatePower) / Math.Log(2)))
 
-        For Exponent As Integer = 2 To GreatestExponent
-            Dim CandidateBase As Integer = CInt(Math.Round(Math.Pow(CandidatePower, 1.0 / Exponent)))
+        For Exponent As Long = 2 To GreatestExponent
+            Dim CandidateBase As Long = CInt(Math.Round(Math.Pow(CandidatePower, 1.0 / Exponent)))
 
             If Math.Pow(CandidateBase, Exponent) = CandidatePower Then
                 Return True
@@ -20,7 +20,7 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
         Return False
     End Function
 
-    Function FindGreatestCommonDivisor(FirstNumber As Integer, SecondNumber As Integer) As Integer
+    Function FindGreatestCommonDivisor(FirstNumber As Long, SecondNumber As Long) As Long
         If SecondNumber > 0 Then
             Return FindGreatestCommonDivisor(SecondNumber, FirstNumber Mod SecondNumber)
         Else
@@ -28,27 +28,30 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
         End If
     End Function
 
-    Function FindLeastOrderThresholdModulus(Number As Integer) As Integer
-        Dim Threshold As Double = Math.Pow(Math.Log(Number, 2), 2)
+    Function FindLeastOrderThresholdModulus(Number As Long) As Long
+        Dim Threshold As Long = CInt(Math.Floor(Math.Pow(Math.Log(Number, 2), 2)))
+        Dim UpperBound As Long = CLng(Math.Ceiling(Math.Pow(Math.Log(Number, 2), 5)))
 
-        For LeastOrderThresholdModulusCandidate As Integer = 2 To Number
+        For LeastOrderThresholdModulusCandidate As Long = 2 To UpperBound
             If FindGreatestCommonDivisor(Number, LeastOrderThresholdModulusCandidate) = 1 Then
-                Dim MultiplicativeOrder As Integer = FindMultiplicativeOrder(Number, LeastOrderThresholdModulusCandidate)
+                Dim MultiplicativeOrder As Long = FindMultiplicativeOrder(Number, LeastOrderThresholdModulusCandidate)
 
                 If MultiplicativeOrder > Threshold Then
                     Return LeastOrderThresholdModulusCandidate
                 End If
             End If
+
+            LeastOrderThresholdModulusCandidate += 1
         Next
 
         Return -1
     End Function
 
-    Function FindMultiplicativeOrder(BaseNumber As Integer, Modulus As Integer) As Integer
+    Function FindMultiplicativeOrder(BaseNumber As Long, Modulus As Long) As Long
         If FindGreatestCommonDivisor(BaseNumber, Modulus) <> 1 Then Return -1
 
-        Dim Index As Integer = 1
-        Dim Residue As Integer = BaseNumber Mod Modulus
+        Dim Index As Long = 1
+        Dim Residue As Long = BaseNumber Mod Modulus
 
         While Residue <> 1
             Residue = (Residue * BaseNumber) Mod Modulus
@@ -60,24 +63,30 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
         Return Index
     End Function
 
-    Function TestPrimality(PrimeCandidate As Integer) As Boolean
+    Function TestPrimality(PrimeCandidate As Long) As Boolean
         If TestExponentiality(PrimeCandidate) Then
             Return False
         End If
 
-        Dim LeastOrderThresholdModulus As Integer = FindLeastOrderThresholdModulus(PrimeCandidate)
+        Dim LeastOrderThresholdModulus As Long = FindLeastOrderThresholdModulus(PrimeCandidate)
+
+        If LeastOrderThresholdModulus = -1 Then
+            Return False
+        End If
+
+        ' Console.WriteLine(LeastOrderThresholdModulus.ToString())
 
         If PrimeCandidate <= LeastOrderThresholdModulus Then
             Return True
         End If
 
-        For Number As Integer = 2 To LeastOrderThresholdModulus
+        For Number As Long = 2 To LeastOrderThresholdModulus
             If FindGreatestCommonDivisor(Number, PrimeCandidate) > 1 Then
                 Return False
             End If
         Next
 
-        Dim PhiOfLeastOrderThresholdModulus As Integer = FindTotient(LeastOrderThresholdModulus)
+        Dim PhiOfLeastOrderThresholdModulus As Long = FindTotient(LeastOrderThresholdModulus)
 
         Dim BasePolynomial(LeastOrderThresholdModulus - 1) As Long
 
@@ -85,7 +94,7 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
 
         ' Run Polynomial Congruence Test
 
-        For ConstantTerm As Integer = 1 To UpperBound
+        For ConstantTerm As Long = 1 To UpperBound
             Array.Clear(BasePolynomial, 0, LeastOrderThresholdModulus)
             BasePolynomial(0) = ConstantTerm
             BasePolynomial(1) = 1
@@ -98,7 +107,7 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
             RightHandSide(ReducedExponent) = 1
             RightHandSide(0) = ConstantTerm
 
-            For i As Integer = 0 To LeastOrderThresholdModulus - 1
+            For i As Long = 0 To LeastOrderThresholdModulus - 1
                 If LeftHandSide(i) <> RightHandSide(i) Then
                     Return False
                 End If
@@ -108,17 +117,17 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
         Return True
     End Function
 
-    Function FindTotient(Number As Integer) As Integer
-        Dim Count As Integer = 0
+    Function FindTotient(Number As Long) As Long
+        Dim Count As Long = 0
 
-        For CoprimeCandidate As Integer = 1 To Number
+        For CoprimeCandidate As Long = 1 To Number
             If FindGreatestCommonDivisor(CoprimeCandidate, Number) = 1 Then Count += 1
         Next
 
         Return Count
     End Function
 
-    Function ExponentiatePolynomialModularly(Polynomial As Long(), Exponent As Long, IntegerModulus As Long, DegreeBound As Integer) As Long()
+    Function ExponentiatePolynomialModularly(Polynomial As Long(), Exponent As Long, LongModulus As Long, DegreeBound As Long) As Long()
         Dim PolynomialResidue(DegreeBound - 1) As Long
         PolynomialResidue(0) = 1
 
@@ -126,28 +135,28 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
 
         While Exponent > 0
             If (Exponent And 1) = 1 Then
-                PolynomialResidue = MultiplyPolynomials(PolynomialResidue, BasePolynomial, IntegerModulus, DegreeBound)
+                PolynomialResidue = MultiplyPolynomials(PolynomialResidue, BasePolynomial, LongModulus, DegreeBound)
             End If
 
-            BasePolynomial = MultiplyPolynomials(BasePolynomial, BasePolynomial, IntegerModulus, DegreeBound)
+            BasePolynomial = MultiplyPolynomials(BasePolynomial, BasePolynomial, LongModulus, DegreeBound)
             Exponent = Exponent >> 1
         End While
 
         Return PolynomialResidue
     End Function
 
-    Function MultiplyPolynomials(MultiplierPolynomialCoefficients As Long(), MultiplicandPolynomialCoefficients As Long(), IntegerModulus As Long, DegreeBound As Integer) As Long()
+    Function MultiplyPolynomials(MultiplierPolynomialCoefficients As Long(), MultiplicandPolynomialCoefficients As Long(), LongModulus As Long, DegreeBound As Long) As Long()
         Dim ProductPolynomial(DegreeBound - 1) As Long
 
-        For MultiplierPolynomialTerm As Integer = 0 To DegreeBound - 1
+        For MultiplierPolynomialTerm As Long = 0 To DegreeBound - 1
             If MultiplierPolynomialCoefficients(MultiplierPolynomialTerm) = 0 Then Continue For
 
-            For MultiplicandPolynomialTerm As Integer = 0 To DegreeBound - 1
+            For MultiplicandPolynomialTerm As Long = 0 To DegreeBound - 1
                 If MultiplicandPolynomialCoefficients(MultiplicandPolynomialTerm) = 0 Then Continue For
 
                 Dim ProductPolynomialTerm = (MultiplierPolynomialTerm + MultiplicandPolynomialTerm) Mod DegreeBound
 
-                ProductPolynomial(ProductPolynomialTerm) = (ProductPolynomial(ProductPolynomialTerm) + MultiplierPolynomialCoefficients(MultiplierPolynomialTerm) * MultiplicandPolynomialCoefficients(MultiplicandPolynomialTerm)) Mod IntegerModulus
+                ProductPolynomial(ProductPolynomialTerm) = (ProductPolynomial(ProductPolynomialTerm) + MultiplierPolynomialCoefficients(MultiplierPolynomialTerm) * MultiplicandPolynomialCoefficients(MultiplicandPolynomialTerm)) Mod LongModulus
             Next
         Next
 
@@ -155,23 +164,25 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
     End Function
 
     Sub Main()
-        ' Dim ListOfPerfectPowers() As Integer = {1, 4, 8, 9, 10, 27, 32, 36, 64, 100, 125, 144, 169, 200}
+        ' Dim ListOfPerfectPowers() As Long = {1, 4, 8, 9, 10, 27, 32, 36, 64, 100, 125, 144, 169, 200}
 
-        ' For Each Number As Integer In ListOfPerfectPowers
+        ' For Each Number As Long In ListOfPerfectPowers
         '     Console.WriteLine(Number.ToString() & " is " & If(TestExponentiality(Number), "a perfect power.", "not a perfect power."))
         ' Next
 
-        Console.Write("Enter an integer to test for primality: ")
-        Dim InputString As String = Console.ReadLine()
-    
-        Dim PrimeCandidate As Long
-        If Long.TryParse(InputString, PrimeCandidate) Then
-            Dim Primality As Boolean = TestPrimality(PrimeCandidate)
-    
-            Console.WriteLine(PrimeCandidate.ToString() & " is " & If(Primality, "a prime number.", "not a prime number."))
-        Else
-            Console.WriteLine("Invalid input. Please enter a valid integer.")
-        End If
+        Do
+            Console.Write("Enter an integer to test for primality: ")
+            Dim InputString As String = Console.ReadLine()
+
+            Dim PrimeCandidate As Long
+            If Long.TryParse(InputString, PrimeCandidate) Then
+                Dim Primality As Boolean = TestPrimality(PrimeCandidate)
+
+                Console.WriteLine(PrimeCandidate.ToString() & " is " & If(Primality, "a prime number.", "not a prime number."))
+            Else
+                Console.WriteLine("Invalid input. Please enter a valid Long.")
+            End If
+        Loop
     End Sub
 
 End Module
