@@ -40,8 +40,6 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
                     Return LeastOrderThresholdModulusCandidate
                 End If
             End If
-
-            LeastOrderThresholdModulusCandidate += 1
         Next
 
         Return -1
@@ -76,21 +74,23 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
 
         ' Console.WriteLine(LeastOrderThresholdModulus.ToString())
 
-        If PrimeCandidate <= LeastOrderThresholdModulus Then
-            Return True
-        End If
+        Dim UpperBound = Math.Min(LeastOrderThresholdModulus, PrimeCandidate - 1)
 
-        For Number As Long = 2 To LeastOrderThresholdModulus
+        For Number As Long = 2 To UpperBound
             If FindGreatestCommonDivisor(Number, PrimeCandidate) > 1 Then
                 Return False
             End If
         Next
 
+        If PrimeCandidate <= LeastOrderThresholdModulus Then
+            Return True
+        End If
+
         Dim PhiOfLeastOrderThresholdModulus As Long = FindTotient(LeastOrderThresholdModulus)
 
         Dim BasePolynomial(LeastOrderThresholdModulus - 1) As Long
 
-        Dim UpperBound = CInt(Math.Floor(Math.Sqrt(PhiOfLeastOrderThresholdModulus) * Math.Log(PrimeCandidate, 2)))
+        UpperBound = CInt(Math.Floor(Math.Sqrt(PhiOfLeastOrderThresholdModulus) * Math.Log(PrimeCandidate, 2)))
 
         ' Run Polynomial Congruence Test
 
