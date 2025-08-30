@@ -182,7 +182,7 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
 
                 Console.WriteLine(PrimeCandidate.ToString() & " is " & If(Primality, "a prime number.", "not a prime number."))
             Else
-                Console.WriteLine("Invalid input. Please enter a valid Long.")
+                Console.WriteLine("Invalid input. Please enter a valid integer.")
             End If
         Loop
     End Sub
