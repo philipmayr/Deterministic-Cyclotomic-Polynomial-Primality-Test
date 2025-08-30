@@ -6,6 +6,33 @@ Imports System
 
 Module DeterministicCyclotomicPolynomialPrimalityTest
 
+    Function FindSquareRoot(Square As Double, Optional IterationCount As Integer = 70) As Double
+        If Square < 0 Then
+            Throw New ArgumentOutOfRangeException("Square cannot be less than zero.")
+        End If
+    
+        If Square = 0 OrElse Square = 1 Then
+            Return Square
+        End If
+    
+        Dim LowerBound As Double = 0.0
+        Dim UpperBound As Double = If(Square < 1, 1.0, Square)
+        Dim Midpoint As Double = 0
+    
+        For Iteration As Integer = 1 To IterationCount
+            Midpoint = (LowerBound + UpperBound) / 2        
+            If Midpoint * Midpoint > Square Then
+                UpperBound = Midpoint                
+            Else
+                LowerBound = Midpoint                
+            End If
+        Next
+        
+        Midpoint = (LowerBound + UpperBound) / 2
+    
+        Return Midpoint
+    End Function
+
     Function TakeBinaryLogarithm(Power As Integer) As Integer
         Dim BinaryLogarithm As Integer = 0
         
@@ -131,7 +158,7 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
         Dim PhiOfLeastOrderThresholdModulus As Integer = FindTotient(LeastOrderThresholdModulus)
 
         Dim BasePolynomial(LeastOrderThresholdModulus - 1) As Integer
-        UpperBound = CInt(Math.Floor(Math.Sqrt(PhiOfLeastOrderThresholdModulus) * TakeBinaryLogarithm(PrimeCandidate)))
+        UpperBound = CInt(Math.Floor(FindSquareRoot(PhiOfLeastOrderThresholdModulus) * TakeBinaryLogarithm(PrimeCandidate)))
 
         ' Run Polynomial Congruence Test
 
