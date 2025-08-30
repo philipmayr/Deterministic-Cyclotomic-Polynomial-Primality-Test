@@ -161,12 +161,16 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
         '     Console.WriteLine(Number.ToString() & " is " & If(TestExponentiality(Number), "a perfect power.", "not a perfect power."))
         ' Next
 
-        Dim PrimeCandidate = 73
-
-        Dim Primality = TestPrimality(PrimeCandidate)
-
-        If Primality Then
+        Console.Write("Enter an integer to test for primality: ")
+        Dim InputString As String = Console.ReadLine()
+    
+        Dim PrimeCandidate As Long
+        If Long.TryParse(InputString, PrimeCandidate) Then
+            Dim Primality As Boolean = TestPrimality(PrimeCandidate)
+    
             Console.WriteLine(PrimeCandidate.ToString() & " is " & If(Primality, "a prime number.", "not a prime number."))
+        Else
+            Console.WriteLine("Invalid input. Please enter a valid integer.")
         End If
     End Sub
 
