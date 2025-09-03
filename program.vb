@@ -130,6 +130,8 @@ Module DeterministicCyclotomicPolynomialPrimalityTest
 
     Function TestPrimality(PrimeCandidate As Integer) As Boolean
         If PrimeCandidate = 2 Then Return True
+        
+        If Not (PrimeCandidate And 1) = 1 Then Return False
 
         If TestExponentiality(PrimeCandidate) Then
             Return False
